@@ -30,7 +30,7 @@ go get github.com/c-bata/go-prompt
 git clone https://github.com/tirea/ftia
 cd ftia
 go build -o $HOME\ftia.exe .\ftia.go
-copy *.txt $HOME\
+copy -Recurse .\.ftia $HOME\
 ```
 
 ## Usage
