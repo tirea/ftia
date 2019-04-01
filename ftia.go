@@ -136,8 +136,6 @@ func del(s []string) {
 		return
 	}
 	if len(s) != 0 {
-		fmt.Println(s)
-		fmt.Println(knownIDs)
 		for _, v := range s {
 			pv, err := strconv.ParseInt(v, 10, 64)
 			if err != nil {
@@ -150,11 +148,9 @@ func del(s []string) {
 					idx = i
 				}
 			}
-			fmt.Println(knownIDs)
 			knownIDs[idx] = knownIDs[len(knownIDs)-1]
 			knownIDs[len(knownIDs)-1] = ""
 			knownIDs = knownIDs[:len(knownIDs)-1]
-			fmt.Println(knownIDs)
 		}
 	}
 }
@@ -215,6 +211,9 @@ func load() {
 	scanner := bufio.NewScanner(kfile)
 	for scanner.Scan() {
 		line := scanner.Text()
+		if len(line) == 0 {
+			continue
+		}
 		k := strings.Split(line[:len(line)-1], ",")
 		for _, kv := range k {
 			knownIDs = append(knownIDs, kv)
