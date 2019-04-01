@@ -88,6 +88,9 @@ func sel(n string, k bool, a bool) {
 							inf = fields[3]
 						}
 						pos := fields[4]
+						if contains(selected, ID) {
+							continue
+						}
 						selected = append(selected, ID)
 						fmt.Printf("[%d] %s [%s] %s %s\n", len(selected), w, ipa, inf, pos)
 					}
@@ -100,6 +103,9 @@ func sel(n string, k bool, a bool) {
 							inf = fields[3]
 						}
 						pos := fields[4]
+						if contains(selected, ID) {
+							continue
+						}
 						selected = append(selected, ID)
 						fmt.Printf("[%d] %s [%s] %s %s\n", len(selected), w, ipa, inf, pos)
 					}
