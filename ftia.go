@@ -6,6 +6,8 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"os/user"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -14,16 +16,20 @@ import (
 )
 
 const (
-	fname_m  string = "metaWords.txt"
-	fname_d  string = "localizedWords.txt"
-	fname_k  string = "known.txt"
+	//tODO: make this configurable
 	language string = "eng"
 )
 
 var (
-	numwords int
-	knownIDs []string
-	selected []string
+	numwords   int
+	knownIDs   []string
+	selected   []string
+	usr, _     = user.Current()
+	homeDir, _ = filepath.Abs(usr.HomeDir)
+	dataDir    = filepath.Join(homeDir, ".ftia")
+	fname_m    = filepath.Join(dataDir, "metaWords.txt")
+	fname_d    = filepath.Join(dataDir, "localizedWords.txt")
+	fname_k    = filepath.Join(dataDir, "known.txt")
 )
 
 func linecount() {
@@ -165,7 +171,7 @@ func load() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("data loaded")
+	fmt.Println("data loaded\n")
 }
 
 func executor(cmd string) {
@@ -183,6 +189,7 @@ func executor(cmd string) {
 		save()
 		os.Exit(0)
 	}
+	fmt.Println()
 }
 
 func completer(d prompt.Document) []prompt.Suggest {
