@@ -35,7 +35,7 @@ var (
 func linecount() {
 	mfile, err := os.Open(fname_m)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	scanner := bufio.NewScanner(mfile)
 	for scanner.Scan() {
@@ -43,7 +43,7 @@ func linecount() {
 	}
 	err = mfile.Close()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 }
 
@@ -56,16 +56,19 @@ func contains(q []string, s string) bool {
 	return false
 }
 
-func sel(n string, a bool) {
+func sel(n string, k bool, a bool) {
 	selected = []string{}
+	if n == "" {
+		return
+	}
 	in, err := strconv.ParseInt(n, 10, 64)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	for len(selected) < int(in) {
 		mfile, err := os.Open(fname_m)
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 		ln := 0
 		rn := rand.Intn(numwords)
@@ -76,35 +79,82 @@ func sel(n string, a bool) {
 			if ln == rn {
 				fields := strings.Split(line, "\t")
 				ID := fields[0]
-				if contains(knownIDs, ID) && !a {
-					continue
+				if contains(knownIDs, ID) {
+					if k || a {
+						w := fields[1]
+						ipa := fields[2]
+						inf := ""
+						if fields[3] != "NULL" {
+							inf = fields[3]
+						}
+						pos := fields[4]
+						selected = append(selected, ID)
+						fmt.Printf("[%d] %s [%s] %s %s\n", len(selected), w, ipa, inf, pos)
+					}
+				} else {
+					if !k || a {
+						w := fields[1]
+						ipa := fields[2]
+						inf := ""
+						if fields[3] != "NULL" {
+							inf = fields[3]
+						}
+						pos := fields[4]
+						selected = append(selected, ID)
+						fmt.Printf("[%d] %s [%s] %s %s\n", len(selected), w, ipa, inf, pos)
+					}
 				}
-				w := fields[1]
-				ipa := fields[2]
-				inf := ""
-				if fields[3] != "NULL" {
-					inf = fields[3]
-				}
-				pos := fields[4]
-				selected = append(selected, ID)
-				fmt.Printf("[%d] %s [%s] %s %s\n", len(selected), w, ipa, inf, pos)
 			}
 		}
 		err = mfile.Close()
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 	}
 }
 
-func known(s []string) {
+func add(s []string) {
+	if len(selected) == 0 {
+		return
+	}
 	if len(s) != 0 {
 		for _, v := range s {
 			pv, err := strconv.ParseInt(v, 10, 64)
 			if err != nil {
-				panic(err)
+				log.Fatal(err)
+			}
+			if contains(knownIDs, selected[int(pv)-1]) {
+				continue
 			}
 			knownIDs = append(knownIDs, selected[int(pv)-1])
+		}
+	}
+}
+
+func del(s []string) {
+	if len(selected) == 0 {
+		return
+	}
+	if len(s) != 0 {
+		fmt.Println(s)
+		fmt.Println(knownIDs)
+		for _, v := range s {
+			pv, err := strconv.ParseInt(v, 10, 64)
+			if err != nil {
+				log.Fatal(err)
+			}
+			idx := 0
+			ID := selected[int(pv)-1]
+			for i, x := range knownIDs {
+				if x == ID {
+					idx = i
+				}
+			}
+			fmt.Println(knownIDs)
+			knownIDs[idx] = knownIDs[len(knownIDs)-1]
+			knownIDs[len(knownIDs)-1] = ""
+			knownIDs = knownIDs[:len(knownIDs)-1]
+			fmt.Println(knownIDs)
 		}
 	}
 }
@@ -112,9 +162,12 @@ func known(s []string) {
 func define(s []string) {
 	if len(s) != 0 {
 		for _, v := range s {
+			if v == "" {
+				continue
+			}
 			dfile, err := os.Open(fname_d)
 			if err != nil {
-				panic(err)
+				log.Fatal(err)
 			}
 			pv, err := strconv.ParseInt(v, 10, 64)
 			ID := selected[int(pv)-1]
@@ -130,7 +183,7 @@ func define(s []string) {
 			}
 			err = dfile.Close()
 			if err != nil {
-				panic(err)
+				log.Fatal(err)
 			}
 		}
 	}
@@ -157,37 +210,44 @@ func save() {
 func load() {
 	kfile, err := os.Open(fname_k)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	scanner := bufio.NewScanner(kfile)
 	for scanner.Scan() {
 		line := scanner.Text()
-		k := strings.Split(line[:len(line)], ",")
+		k := strings.Split(line[:len(line)-1], ",")
 		for _, kv := range k {
 			knownIDs = append(knownIDs, kv)
 		}
 	}
 	err = kfile.Close()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	fmt.Println("data loaded\n")
 }
 
 func executor(cmd string) {
 	s := strings.Split(cmd, " ")
-	switch s[0] {
-	case "/select":
-		sel(s[1], false)
-	case "/selectfromall":
-		sel(s[1], true)
-	case "/known":
-		known(s[1:])
-	case "/define":
-		define(s[1:])
-	case "/q", "/quit", "/exit":
+	if len(s) > 0 && contains([]string{"/q", "/quit", "/exit"}, s[0]) {
 		save()
 		os.Exit(0)
+	}
+	if len(s) > 1 {
+		switch s[0] {
+		case "/select":
+			sel(s[1], false, false)
+		case "/known":
+			sel(s[1], true, false)
+		case "/selectfromall":
+			sel(s[1], true, true)
+		case "/add":
+			add(s[1:])
+		case "/delete":
+			del(s[1:])
+		case "/define":
+			define(s[1:])
+		}
 	}
 	fmt.Println()
 }
@@ -197,12 +257,14 @@ func completer(d prompt.Document) []prompt.Suggest {
 		return []prompt.Suggest{}
 	}
 	s := []prompt.Suggest{
-		{Text: "/select", Description: ""},
-		{Text: "/selectfromall", Description: ""},
-		{Text: "/known", Description: ""},
-		{Text: "/define", Description: ""},
-		{Text: "/quit", Description: ""},
-		{Text: "/exit", Description: ""},
+		{Text: "/select", Description: "select n random unlearned words"},
+		{Text: "/selectfromall", Description: "select n random words both learned and unlearned"},
+		{Text: "/known", Description: "select n random learned words"},
+		{Text: "/define", Description: "show definition / translation for given entry in selection"},
+		{Text: "/add", Description: "mark given entries known / learned"},
+		{Text: "/delete", Description: "unmark given entries known / learned"},
+		{Text: "/quit", Description: "save and quit program"},
+		{Text: "/exit", Description: "save and quit program"},
 	}
 	return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
 }
