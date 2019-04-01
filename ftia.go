@@ -121,7 +121,7 @@ func define(s []string) {
 			scanner := bufio.NewScanner(dfile)
 			for scanner.Scan() {
 				line := scanner.Text()
-				if strings.HasPrefix(line, ID+"\t") && strings.Contains(line, language) {
+				if strings.HasPrefix(line, ID+"\t") && strings.Contains(line, language+"\t") {
 					fields := strings.Split(line, "\t")
 					d := fields[2]
 					pos := fields[3]
