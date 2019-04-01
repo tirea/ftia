@@ -4,10 +4,33 @@ A simple text-based vocabulary review app
 
 ## Installation
 
+
+### macOS / Linux
+
+Run the following inside a Terminal:
+
 ```
 git clone https://github.com/tirea/ftia
 cd ftia
 sudo make install
+```
+
+### Windows
+
+Run the fellowing inside a Powershell:
+```
+cd $HOME
+mkdir go\src
+setx GOPATH $HOME\go
+```
+Open a new Powershell, then continue:
+```
+cd go\src\
+go get github.com/c-bata/go-prompt
+git clone https://github.com/tirea/ftia
+cd ftia
+go build -o $HOME\ftia.exe .\ftia.go
+copy *.txt $HOME\
 ```
 
 ## Usage
