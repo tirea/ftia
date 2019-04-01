@@ -12,7 +12,7 @@ Run the following inside a Terminal:
 ```
 git clone https://github.com/tirea/ftia
 cd ftia
-sudo make install
+make install
 ```
 
 ### Windows

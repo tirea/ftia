@@ -7,11 +7,11 @@ compile: ftia.go
 	go build -o ftia ftia.go
 
 install: all
-	cp ftia /usr/local/bin/
+	sudo cp ftia /usr/local/bin/
 	cp -r .ftia ~/
 
 uninstall:
-	rm /usr/local/bin/ftia
+	sudo rm /usr/local/bin/ftia
 	rm -rf ~/.ftia
 
 clean:
