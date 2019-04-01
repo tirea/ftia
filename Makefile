@@ -6,6 +6,11 @@ format: ftia.go
 compile: ftia.go
 	go build -o ftia ftia.go
 
-clean:
-	rm -f ftia
+install: all
+	cp ftia /usr/local/bin/
 
+uninstall:
+	rm /usr/local/bin/ftia
+
+clean:
+	rm -f ./ftia
