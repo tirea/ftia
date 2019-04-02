@@ -125,6 +125,9 @@ func add(s []string) {
 	}
 	if len(s) != 0 {
 		for _, v := range s {
+			if v == "" {
+				continue
+			}
 			pv, err := strconv.ParseInt(v, 10, 64)
 			if err != nil {
 				log.Fatal(err)
@@ -143,6 +146,9 @@ func del(s []string) {
 	}
 	if len(s) != 0 {
 		for _, v := range s {
+			if v == "" {
+				continue
+			}
 			pv, err := strconv.ParseInt(v, 10, 64)
 			if err != nil {
 				log.Fatal(err)
