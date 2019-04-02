@@ -197,6 +197,12 @@ func define(s []string) {
 	}
 }
 
+func progress() {
+	k := len(knownIDs)
+	p := 100 * (float64(k) / float64(numwords))
+	fmt.Printf("%.2f%% (%d / %d)\n", p, k, numwords)
+}
+
 func save() {
 	kfile, err := os.OpenFile(fname_k, os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
@@ -240,9 +246,13 @@ func load() {
 
 func executor(cmd string) {
 	s := strings.Split(cmd, " ")
-	if len(s) > 0 && contains([]string{"/q", "/quit", "/exit"}, s[0]) {
-		save()
-		os.Exit(0)
+	if len(s) > 0 {
+		if contains([]string{"/q", "/quit", "/exit"}, s[0]) {
+			save()
+			os.Exit(0)
+		} else if s[0] == "/progress" {
+			progress()
+		}
 	}
 	if len(s) > 1 {
 		switch s[0] {
@@ -274,6 +284,7 @@ func completer(d prompt.Document) []prompt.Suggest {
 		{Text: "/define", Description: "show definition / translation for given entry in selection"},
 		{Text: "/add", Description: "mark given entries known / learned"},
 		{Text: "/delete", Description: "unmark given entries known / learned"},
+		{Text: "/progress", Description: "show current progress of words learned out of words in the dictionary"},
 		{Text: "/quit", Description: "save and quit program"},
 		{Text: "/exit", Description: "save and quit program"},
 	}
