@@ -9,7 +9,7 @@ compile: ftia.go
 install: all
 	sudo cp ftia /usr/local/bin/
 	cp -r .ftia ~/
-	touch ~/.ftia/known.txt
+	[ -f ~/.ftia/known.txt ] || touch ~/.ftia/known.txt
 
 uninstall:
 	sudo rm /usr/local/bin/ftia
