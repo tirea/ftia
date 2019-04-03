@@ -222,7 +222,7 @@ func source(s []string) {
 				continue
 			}
 			e := selected[int(pv)]
-			fmt.Printf("[%d] %s: %s", pv, e.Navi, e.Source)
+			fmt.Printf("[%d] %s: %s\n", pv, e.Navi, e.Source)
 		}
 	}
 }
@@ -314,7 +314,7 @@ func completer(d prompt.Document) []prompt.Suggest {
 		{Text: "/selectfromall", Description: "select n random words both learned and unlearned"},
 		{Text: "/known", Description: "select n random learned words"},
 		{Text: "/define", Description: "show definition / translation for given entry in selection"},
-		{Text: "/source", Description: "Show canon source of given entry"},
+		{Text: "/source", Description: "show canon source of given entry"},
 		{Text: "/add", Description: "mark given entries known / learned"},
 		{Text: "/delete", Description: "unmark given entries known / learned"},
 		{Text: "/progress", Description: "show current progress of words learned out of words in the dictionary"},
