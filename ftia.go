@@ -48,6 +48,7 @@ var (
 	dataDir         = filepath.Join(homeDir, ".ftia")
 	fname_d         = filepath.Join(dataDir, "dictionary_"+language+".txt")
 	fname_k         = filepath.Join(dataDir, "known.txt")
+	fname_kr        = filepath.Join(dataDir, "known_rev.txt")
 )
 
 func linecount() {
@@ -238,30 +239,31 @@ func progress() {
 	fmt.Printf("%.2f%% (%d / %d)\n", p, k, numwords)
 }
 
-func save() {
-	kfile, err := os.OpenFile(fname_k, os.O_CREATE|os.O_WRONLY, 0666)
+func save(fname string) {
+	sfile, err := os.OpenFile(fname, os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		log.Fatal(err)
 	}
 	for _, v := range knownIDs {
 		if v != "" {
-			if _, err := kfile.Write([]byte(v + ",")); err != nil {
+			if _, err := sfile.Write([]byte(v + ",")); err != nil {
 				log.Fatal(err)
 			}
 		}
 	}
-	if err := kfile.Close(); err != nil {
+	if err := sfile.Close(); err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("data saved")
 }
 
-func load() {
-	kfile, err := os.Open(fname_k)
+func load(fname string) {
+	knownIDs = []string{}
+	lfile, err := os.Open(fname)
 	if err != nil {
 		log.Fatal(err)
 	}
-	scanner := bufio.NewScanner(kfile)
+	scanner := bufio.NewScanner(lfile)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if len(line) == 0 {
@@ -272,23 +274,38 @@ func load() {
 			knownIDs = append(knownIDs, kv)
 		}
 	}
-	err = kfile.Close()
+	err = lfile.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("data loaded\n")
+	fmt.Println("data loaded")
+}
+
+func rev() {
+	if reverse {
+		save(fname_kr)
+		load(fname_k)
+	} else {
+		save(fname_k)
+		load(fname_kr)
+	}
+	reverse = !reverse
 }
 
 func executor(cmd string) {
 	s := strings.Split(cmd, " ")
 	if len(s) > 0 {
 		if contains([]string{"/q", "/quit", "/exit", "/kä", "/hum"}, s[0]) {
-			save()
+			if reverse {
+				save(fname_kr)
+			} else {
+				save(fname_k)
+			}
 			os.Exit(0)
 		} else if contains([]string{"/progress", "/p", "/holpxaype", "/polpxay"}, s[0]) {
 			progress()
 		} else if contains([]string{"/switch", "/change", "/reverse", "/r", "/latem"}, s[0]) {
-			reverse = !reverse
+			rev()
 		}
 	}
 	if len(s) > 1 {
@@ -347,7 +364,8 @@ func main() {
 	fmt.Println(head)
 	linecount()
 	rand.Seed(time.Now().UTC().UnixNano())
-	load()
+	load(fname_k)
+	fmt.Println()
 	p := prompt.New(executor, completer,
 		prompt.OptionTitle("Ftia"),
 		prompt.OptionPrefix("~~> "),

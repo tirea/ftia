@@ -10,6 +10,7 @@ install: all
 	sudo cp ftia /usr/local/bin/
 	cp -r .ftia ~/
 	[ -f ~/.ftia/known.txt ] || touch ~/.ftia/known.txt
+	[ -f ~/.ftia/known_rev.txt ] || touch ~/.ftia/known_rev.txt
 
 uninstall:
 	sudo rm /usr/local/bin/ftia
