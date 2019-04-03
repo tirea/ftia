@@ -16,32 +16,49 @@ import (
 )
 
 const (
-	//tODO: make this configurable
+	// tODO: make language configurable
 	language string = "eng"
+	// field indices of the data file
+	idField  int = 0
+	navField int = 1
+	ipaField int = 2
+	infField int = 3
+	posField int = 4
+	defField int = 5
+	srcField int = 6
 )
+
+type entry struct {
+	ID             string
+	Navi           string
+	IPA            string
+	InfixLocations string
+	PartOfSpeech   string
+	Definition     string
+	Source         string
+}
 
 var (
 	numwords   int
 	knownIDs   []string
-	selected   []string
+	selected   map[int]entry
 	usr, _     = user.Current()
 	homeDir, _ = filepath.Abs(usr.HomeDir)
 	dataDir    = filepath.Join(homeDir, ".ftia")
-	fname_m    = filepath.Join(dataDir, "metaWords.txt")
-	fname_d    = filepath.Join(dataDir, "localizedWords.txt")
+	fname_d    = filepath.Join(dataDir, "dictionary_"+language+".txt")
 	fname_k    = filepath.Join(dataDir, "known.txt")
 )
 
 func linecount() {
-	mfile, err := os.Open(fname_m)
+	dfile, err := os.Open(fname_d)
 	if err != nil {
 		log.Fatal(err)
 	}
-	scanner := bufio.NewScanner(mfile)
+	scanner := bufio.NewScanner(dfile)
 	for scanner.Scan() {
 		numwords++
 	}
-	err = mfile.Close()
+	err = dfile.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -56,63 +73,64 @@ func contains(q []string, s string) bool {
 	return false
 }
 
+func mapContains(m map[int]entry, i string) bool {
+	for _, x := range m {
+		if x.ID == i {
+			return true
+		}
+	}
+	return false
+}
+
 func sel(n string, k bool, a bool) {
-	selected = []string{}
+	selected = make(map[int]entry)
 	if n == "" {
 		return
 	}
 	in, err := strconv.ParseInt(n, 10, 64)
 	if err != nil {
-		log.Fatal(err)
+		return
 	}
 	for len(selected) < int(in) {
-		mfile, err := os.Open(fname_m)
+		e := new(entry)
+		dfile, err := os.Open(fname_d)
 		if err != nil {
 			log.Fatal(err)
 		}
 		ln := 0
 		rn := rand.Intn(numwords)
-		scanner := bufio.NewScanner(mfile)
+		scanner := bufio.NewScanner(dfile)
 		for scanner.Scan() {
 			line := scanner.Text()
 			ln++
 			if ln == rn {
 				fields := strings.Split(line, "\t")
-				ID := fields[0]
-				if contains(knownIDs, ID) {
-					if k || a {
-						w := fields[1]
-						ipa := fields[2]
-						inf := ""
-						if fields[3] != "NULL" {
-							inf = fields[3]
-						}
-						pos := fields[4]
-						if contains(selected, ID) {
-							continue
-						}
-						selected = append(selected, ID)
-						fmt.Printf("[%d] %s [%s] %s %s\n", len(selected), w, ipa, inf, pos)
+				ID := fields[idField]
+				kmatch := contains(knownIDs, ID)
+				if a || (kmatch && k) || (!kmatch && !k) {
+					e.ID = fields[idField]
+					e.Navi = fields[navField]
+					e.IPA = fields[ipaField]
+					e.InfixLocations = ""
+					if fields[infField] != "NULL" {
+						e.InfixLocations = fields[infField]
 					}
-				} else {
-					if !k || a {
-						w := fields[1]
-						ipa := fields[2]
-						inf := ""
-						if fields[3] != "NULL" {
-							inf = fields[3]
-						}
-						pos := fields[4]
-						if contains(selected, ID) {
-							continue
-						}
-						selected = append(selected, ID)
-						fmt.Printf("[%d] %s [%s] %s %s\n", len(selected), w, ipa, inf, pos)
+					e.PartOfSpeech = fields[posField]
+					e.Definition = fields[defField]
+					e.Source = fields[srcField]
+					if mapContains(selected, e.ID) {
+						continue
+					}
+					selected[len(selected)+1] = *e
+					if e.InfixLocations == "" {
+						fmt.Printf("[%d] %s [%s] %s\n", len(selected), e.Navi, e.IPA, e.PartOfSpeech)
+					} else {
+						fmt.Printf("[%d] %s [%s] %s %s\n", len(selected), e.Navi, e.IPA, e.InfixLocations, e.PartOfSpeech)
 					}
 				}
 			}
 		}
-		err = mfile.Close()
+		err = dfile.Close()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -130,12 +148,12 @@ func add(s []string) {
 			}
 			pv, err := strconv.ParseInt(v, 10, 64)
 			if err != nil {
-				log.Fatal(err)
-			}
-			if contains(knownIDs, selected[int(pv)-1]) {
 				continue
 			}
-			knownIDs = append(knownIDs, selected[int(pv)-1])
+			if contains(knownIDs, selected[int(pv)].ID) {
+				continue
+			}
+			knownIDs = append(knownIDs, selected[int(pv)].ID)
 		}
 	}
 }
@@ -151,10 +169,10 @@ func del(s []string) {
 			}
 			pv, err := strconv.ParseInt(v, 10, 64)
 			if err != nil {
-				log.Fatal(err)
+				continue
 			}
 			idx := 0
-			ID := selected[int(pv)-1]
+			ID := selected[int(pv)].ID
 			for i, x := range knownIDs {
 				if x == ID {
 					idx = i
@@ -168,31 +186,43 @@ func del(s []string) {
 }
 
 func define(s []string) {
+	if len(selected) == 0 {
+		return
+	}
 	if len(s) != 0 {
 		for _, v := range s {
 			if v == "" {
 				continue
 			}
-			dfile, err := os.Open(fname_d)
+			pv, err := strconv.ParseInt(v, 10, 64)
 			if err != nil {
-				log.Fatal(err)
+				continue
+			}
+			e := selected[int(pv)]
+			if e.InfixLocations == "" {
+				fmt.Printf("[%d] %s [%s] %s %s\n", pv, e.Navi, e.IPA, e.PartOfSpeech, e.Definition)
+			} else {
+				fmt.Printf("[%d] %s [%s] %s %s %s\n", pv, e.Navi, e.IPA, e.InfixLocations, e.PartOfSpeech, e.Definition)
+			}
+		}
+	}
+}
+
+func source(s []string) {
+	if len(selected) == 0 {
+		return
+	}
+	if len(s) != 0 {
+		for _, v := range s {
+			if v == "" {
+				continue
 			}
 			pv, err := strconv.ParseInt(v, 10, 64)
-			ID := selected[int(pv)-1]
-			scanner := bufio.NewScanner(dfile)
-			for scanner.Scan() {
-				line := scanner.Text()
-				if strings.HasPrefix(line, ID+"\t") && strings.Contains(line, language+"\t") {
-					fields := strings.Split(line, "\t")
-					d := fields[2]
-					pos := fields[3]
-					fmt.Printf("%s %s\n", pos, d)
-				}
-			}
-			err = dfile.Close()
 			if err != nil {
-				log.Fatal(err)
+				continue
 			}
+			e := selected[int(pv)]
+			fmt.Printf("[%d] %s: %s", pv, e.Navi, e.Source)
 		}
 	}
 }
@@ -268,6 +298,8 @@ func executor(cmd string) {
 			del(s[1:])
 		case "/define":
 			define(s[1:])
+		case "/source":
+			source(s[1:])
 		}
 	}
 	fmt.Println()
@@ -282,6 +314,7 @@ func completer(d prompt.Document) []prompt.Suggest {
 		{Text: "/selectfromall", Description: "select n random words both learned and unlearned"},
 		{Text: "/known", Description: "select n random learned words"},
 		{Text: "/define", Description: "show definition / translation for given entry in selection"},
+		{Text: "/source", Description: "Show canon source of given entry"},
 		{Text: "/add", Description: "mark given entries known / learned"},
 		{Text: "/delete", Description: "unmark given entries known / learned"},
 		{Text: "/progress", Description: "show current progress of words learned out of words in the dictionary"},
@@ -292,7 +325,7 @@ func completer(d prompt.Document) []prompt.Suggest {
 }
 
 func main() {
-	head := "Ftia v0.0.2-dev by Tirea Aean"
+	head := "Ftia v1.0.0-dev by Tirea Aean"
 	fmt.Println(head)
 	linecount()
 	rand.Seed(time.Now().UTC().UnixNano())
