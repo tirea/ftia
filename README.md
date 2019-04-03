@@ -40,23 +40,25 @@ copy -Recurse .\.ftia $HOME\
 
 ## Usage
 
-`/select x` : select x random unlearned words
+`/select x`, `/s x`, `/ftxey x` : select x random unlearned words
 
-`/selectfromall x`: select x random words both learned and unlearned
+`/selectfromall x`, `/sa x`, `/fratsim`: select x random words both learned and unlearned
 
-`/known x...` : select x random learned words
+`/known x...`, `/k x`, `/nolume` : select x random learned words
 
-`/define n...` : show definition / translation for given entry in selection
+`/define n...`, `/def n...`, `/d n...`, `/ralpeng n...`: show definition / translation for given entry in selection
 
-`/source n...` : show canon source of given entry
+`/source n...`, `/src n...`, `/tsim n...` : show canon source of given entry
 
-`/add n...` : mark given entries known / learned
+`/add n...`, `/a n...`, `/sung n...` : mark given entries known / learned
 
-`/delete n...` : unmark given entries known / learned
+`/delete n...`, `/del n...`, `/'aku n...` : unmark given entries known / learned
 
-`/progress` : show current progress of words learned out of words in the dictionary
+`/switch`, `/change`, `/reverse`, `/r`, `/latem` : reverse the direction of na'vi<->local
 
-`/quit`, `/exit`, `/q` : save data and quit the program.
+`/progress`, `/p`, `/holpxaype`, `/polpxay` : show current progress of words learned out of words in the dictionary
+
+`/quit`, `/exit`, `/q`, `/kä`, `/hum` : save data and quit the program.
 
 `x` is a positive integer number from 1 to the number of words you wish to review with the command.
 
@@ -64,7 +66,7 @@ copy -Recurse .\.ftia $HOME\
 
 `...` represents optional additional space-separated `n` in a list.
 
-## Example
+## Examples
 
 ```
 ➜ ./ftia
@@ -123,4 +125,34 @@ nd-more/ (30 Aug 2015)
 
 ~~> /exit
 data saved
-``` 
+```
+
+```
+➜ ./ftia
+Ftia v2.0.0-dev by Tirea Aean
+data loaded
+
+~~> /latem
+
+~~> /ftxey
+
+~~> /ftxey 5
+[1] n. plate, (for food)
+[2] n. space, open or borderless area
+[3] n. fern
+[4] intj. hello
+[5] n. exception
+
+~~> /sung 3 4
+
+~~> /ralpeng 1 2 5
+[1] yomyo [ˈjom.jo] n. plate, (for food)
+[2] ngip [ŋip̚] n. space, open or borderless area
+[5] tìmungwrr [tɪ.muŋ.ˈwṛ] n. exception
+
+~~> /polpxay
+0.30% (7 / 2334)
+
+~~> /hum
+data saved
+```
