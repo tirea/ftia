@@ -10,6 +10,11 @@ A simple text-based vocabulary review app
 Run the following inside a Terminal:
 
 ```
+cd $HOME
+mkdir -p go/src
+export GOPATH=$HOME/go
+cd ~/go/src
+go get github.com/c-bata/go-prompt
 git clone https://github.com/tirea/ftia
 cd ftia
 make install
@@ -35,19 +40,27 @@ copy -Recurse .\.ftia $HOME\
 
 ## Usage
 
-`/select x` : show untranslated entries for given number of random words, excluding words marked as known
+`/select x` : select x random unlearned words
 
-`/selectfromall x`: show untranslated entries for given number of random words, including words marked as known
+`/selectfromall x`: select x random words both learned and unlearned
 
-`/known n...` : mark the given entry as known so it won't show up in the future
+`/known x...` : select x random learned words
 
-`/define n...` : get the definition / translation of the given entry
+`/define n...` : show definition / translation for given entry in selection
+
+`/source n...` : show canon source of given entry
+
+`/add n...` : mark given entries known / learned
+
+`/delete n...` : unmark given entries known / learned
+
+`/progress` : show current progress of words learned out of words in the dictionary
 
 `/quit`, `/exit`, `/q` : save data and quit the program.
 
 `x` is a positive integer number from 1 to the number of words you wish to review with the command.
 
-`n` is a positive integer number from 1 to the `x` 
+`n` is a positive integer number from 1 to the `x`
 
 `...` represents optional additional space-separated `n` in a list.
 
@@ -55,35 +68,59 @@ copy -Recurse .\.ftia $HOME\
 
 ```
 ➜ ./ftia
-Ftia v0.0.1-dev by Tirea Aean
+Ftia v1.0.0-dev by Tirea Aean
 data loaded
+
 ~~> /select 5
-[1] tsenga [ˈt͡sɛ.ŋa]  conj.
-[2] olo'eyktan [o.lo.ˈʔɛjk.tan]  n.
-[3] toktor [ˈtok.toɾ]  n.
-[4] lemweypey [lɛm.ˈwɛj.pɛj]  adj.
-[5] fuke [fu.ˈkɛ]  conj.
-~~> /known 1
-~~> /known 2 3
-~~> /define 4
-adj. patient
-~~> /define 5
-conj. or not
+[1] lefpomron [lɛ.fpom.ˈɾon] adj.
+[2] yemfpay [jɛm.ˈfpaj] n.
+[3] pxaw [p'aw] adp.
+[4] tìterkup [tɪ.ˈtɛɾ.kup̚] n.
+[5] tsyosyu [ˈt͡sjo.sju] n.
+
+~~> /add 3 4 5
+
+~~> /add 2
+
+~~> /define 1
+[1] lefpomron [lɛ.fpom.ˈɾon] adj. healthy (mentally)
+
 ~~> /select 10
-[1] alu [ˈa.lu]  conj.
-[2] snotipx [sno.ˈtip']  n.
-[3] 'ewan [ˈʔɛ.wan]  adj.
-[4] ioi [i.ˈo.i]  n.
-[5] nìmweypey [nɪm.ˈwɛj.pɛj]  adv.
-[6] fìtxan [fɪ.ˈt'an]  adv.
-[7] vospxìtsìng [vo.sp'ɪ.ˈt͡sɪŋ]  n.
-[8] sa'sem [ˈsaʔ.sɛm]  n.
-[9] nguway [ˈŋu.waj]  n.
-[10] pamtseo si [ˈpam.t͡sɛ.o ˈs·i] pamtseo s<1><2><3>i vin.
-~~> /known 1 3 4 5 6 8 9 10
-~~> /define 2 7
-n. selfcontrol
-n. April
+[1] netrìp [ˈnɛt.ɾɪp̚] adv.
+[2] lopx [l·op'] l<1><2><3>opx vin.
+[3] tsngawpay [ˈt͡sŋaw.paj] n.
+[4] nìsung [nɪ.ˈsuŋ] adv.
+[5] säseyto [sæ.sɛj.ˈto] n.
+[6] tìnvi [ˈtɪn.vi] n.
+[7] kalin [ka.ˈlin] adj.
+[8] mìn [m·ɪn] m<1><2><3>ìn vin.
+[9] kxa [k'a] n.
+[10] 'ewll [ˈʔɛ.wḷ] n.
+
+~~> /add 1 3 4 7 8 9 10
+
+~~> /define 2 5 6
+[2] lopx [l·op'] l<1><2><3>opx vin. panic
+[5] säseyto [sæ.sɛj.ˈto] n. butchering tool
+[6] tìnvi [ˈtɪn.vi] n. task, errand, step (in an instruction)
+
+~~> /source 6
+[6] tìnvi: http://naviteri.org/2016/06/mrrvola-lifyavi-amip-forty-new-expression
+s/ (30 Jun 2016)
+
+~~> /source 2 5
+[2] lopx: Frommer (05 Jul 2012) http://naviteri.org/2012/07/meetings-waterfalls-
+and-more/
+[5] säseyto: http://naviteri.org/2015/08/aylifyavi-lereyfya-2-cultural-terms-2-a
+nd-more/ (30 Aug 2015)
+
+~~> /add 2 5
+
+~~> /delete 2 5
+
+~~> /progress
+6.21% (145 / 2334)
+
 ~~> /exit
 data saved
-```
+``` 
