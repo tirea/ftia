@@ -42,11 +42,12 @@ var (
 	numwords   int
 	knownIDs   []string
 	selected   map[int]entry
-	usr, _     = user.Current()
-	homeDir, _ = filepath.Abs(usr.HomeDir)
-	dataDir    = filepath.Join(homeDir, ".ftia")
-	fname_d    = filepath.Join(dataDir, "dictionary_"+language+".txt")
-	fname_k    = filepath.Join(dataDir, "known.txt")
+	reverse    bool = false
+	usr, _          = user.Current()
+	homeDir, _      = filepath.Abs(usr.HomeDir)
+	dataDir         = filepath.Join(homeDir, ".ftia")
+	fname_d         = filepath.Join(dataDir, "dictionary_"+language+".txt")
+	fname_k         = filepath.Join(dataDir, "known.txt")
 )
 
 func linecount() {
@@ -122,10 +123,14 @@ func sel(n string, k bool, a bool) {
 						continue
 					}
 					selected[len(selected)+1] = *e
-					if e.InfixLocations == "" {
-						fmt.Printf("[%d] %s [%s] %s\n", len(selected), e.Navi, e.IPA, e.PartOfSpeech)
+					if reverse {
+						fmt.Printf("[%d] %s %s\n", len(selected), e.PartOfSpeech, e.Definition)
 					} else {
-						fmt.Printf("[%d] %s [%s] %s %s\n", len(selected), e.Navi, e.IPA, e.InfixLocations, e.PartOfSpeech)
+						if e.InfixLocations == "" {
+							fmt.Printf("[%d] %s [%s] %s\n", len(selected), e.Navi, e.IPA, e.PartOfSpeech)
+						} else {
+							fmt.Printf("[%d] %s [%s] %s %s\n", len(selected), e.Navi, e.IPA, e.InfixLocations, e.PartOfSpeech)
+						}
 					}
 				}
 			}
@@ -277,28 +282,30 @@ func load() {
 func executor(cmd string) {
 	s := strings.Split(cmd, " ")
 	if len(s) > 0 {
-		if contains([]string{"/q", "/quit", "/exit"}, s[0]) {
+		if contains([]string{"/q", "/quit", "/exit", "/kä", "/hum"}, s[0]) {
 			save()
 			os.Exit(0)
-		} else if s[0] == "/progress" {
+		} else if contains([]string{"/progress", "/p", "/holpxaype", "/polpxay"}, s[0]) {
 			progress()
+		} else if contains([]string{"/switch", "/change", "/reverse", "/r", "/latem"}, s[0]) {
+			reverse = !reverse
 		}
 	}
 	if len(s) > 1 {
 		switch s[0] {
-		case "/select":
+		case "/select", "/s", "/ftxey":
 			sel(s[1], false, false)
-		case "/known":
+		case "/known", "/k", "/nolume":
 			sel(s[1], true, false)
-		case "/selectfromall":
+		case "/selectfromall", "/sa", "/fratsim":
 			sel(s[1], true, true)
-		case "/add":
+		case "/add", "/a", "/sung":
 			add(s[1:])
-		case "/delete":
+		case "/delete", "/del", "/'aku":
 			del(s[1:])
-		case "/define":
+		case "/define", "/def", "/d", "/ralpeng":
 			define(s[1:])
-		case "/source":
+		case "/source", "/src", "/tsim":
 			source(s[1:])
 		}
 	}
@@ -311,21 +318,32 @@ func completer(d prompt.Document) []prompt.Suggest {
 	}
 	s := []prompt.Suggest{
 		{Text: "/select", Description: "select n random unlearned words"},
+		{Text: "/ftxey", Description: "ftxey kawnomuma aylì'ut nìfya'o arenulke"},
 		{Text: "/selectfromall", Description: "select n random words both learned and unlearned"},
+		{Text: "/fratsim", Description: "ftxey frafnelì'ut nìfya'o arenulke"},
 		{Text: "/known", Description: "select n random learned words"},
+		{Text: "/nolume", Description: "ftxey awnomuma aylì'ut nìfya'o arenulke"},
 		{Text: "/define", Description: "show definition / translation for given entry in selection"},
+		{Text: "/ralpeng", Description: "wìntxu ralit aylì'uä"},
 		{Text: "/source", Description: "show canon source of given entry"},
+		{Text: "/tsim", Description: "wìntxu tsimit aylì'uä"},
 		{Text: "/add", Description: "mark given entries known / learned"},
+		{Text: "/sung", Description: "sung sna'or aylì'uä awnomum"},
 		{Text: "/delete", Description: "unmark given entries known / learned"},
+		{Text: "/'aku", Description: "'aku ta sna'o aylì'uä awnomum"},
+		{Text: "/reverse", Description: "reverse the direction of na'vi<->local"},
+		{Text: "/latem", Description: "sar lahea lì'fyati tup sar lì'fyati leNa'vi"},
 		{Text: "/progress", Description: "show current progress of words learned out of words in the dictionary"},
+		{Text: "/polpxay", Description: "wìntxu holpxayt aylì'uä awnomum"},
 		{Text: "/quit", Description: "save and quit program"},
 		{Text: "/exit", Description: "save and quit program"},
+		{Text: "/hum", Description: "pamrel si fte ziverok ulte ftang fìkem sivi"},
 	}
 	return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
 }
 
 func main() {
-	head := "Ftia v1.0.0-dev by Tirea Aean"
+	head := "Ftia v2.0.0-dev by Tirea Aean"
 	fmt.Println(head)
 	linecount()
 	rand.Seed(time.Now().UTC().UnixNano())
