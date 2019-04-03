@@ -4,6 +4,7 @@ A simple text-based vocabulary review app
 
 ## Installation
 
+First, make sure you have a Go compiler installed and in your PATH. Visit [https://golang.org](https://golang.org) for download.
 
 ### macOS / Linux
 
@@ -38,7 +39,7 @@ go build -o $HOME\ftia.exe .\ftia.go
 copy -Recurse .\.ftia $HOME\
 ```
 
-## Usage
+## Commands & Aliases
 
 `/select x`, `/s x`, `/ftxey x` : select x random unlearned words
 
@@ -60,9 +61,11 @@ copy -Recurse .\.ftia $HOME\
 
 `/quit`, `/exit`, `/q`, `/kä`, `/hum` : save data and quit the program.
 
-`x` is a positive integer number from 1 to the number of words you wish to review with the command.
+Where
 
-`n` is a positive integer number from 1 to the `x`
+`x` is a positive integer number from 1 to the number of words you wish to review with the command,
+
+`n` is a positive integer number from 1 to `x`, and
 
 `...` represents optional additional space-separated `n` in a list.
 
