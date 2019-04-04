@@ -395,7 +395,7 @@ func completer(d prompt.Document) []prompt.Suggest {
 }
 
 func main() {
-	head := "Ftia v2.1.0-dev by Tirea Aean"
+	head := "Ftia v2.2.0-dev by Tirea Aean"
 	fmt.Println(head)
 	linecount()
 	rand.Seed(time.Now().UTC().UnixNano())
