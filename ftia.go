@@ -41,6 +41,7 @@ type entry struct {
 var (
 	numwords   int
 	knownIDs   []string
+	unknownIDs []string
 	selected   map[int]entry
 	reverse    bool = false
 	usr, _          = user.Current()
@@ -84,6 +85,16 @@ func mapContains(m map[int]entry, i string) bool {
 	return false
 }
 
+func getRandID(k bool) string {
+	if k {
+		rn := rand.Intn(len(knownIDs) - 1)
+		return knownIDs[rn]
+	} else {
+		rn := rand.Intn(len(unknownIDs) - 1)
+		return unknownIDs[rn]
+	}
+}
+
 func sel(n string, k bool, a bool) {
 	selected = make(map[int]entry)
 	if n == "" {
@@ -95,20 +106,18 @@ func sel(n string, k bool, a bool) {
 	}
 	for len(selected) < int(in) {
 		e := new(entry)
+		randID := getRandID(k)
 		dfile, err := os.Open(fname_d)
 		if err != nil {
 			log.Fatal(err)
 		}
-		ln := 0
-		rn := rand.Intn(numwords)
 		scanner := bufio.NewScanner(dfile)
 		for scanner.Scan() {
 			line := scanner.Text()
-			ln++
-			if ln == rn {
-				fields := strings.Split(line, "\t")
-				ID := fields[idField]
-				kmatch := contains(knownIDs, ID)
+			fields := strings.Split(line, "\t")
+			ID := fields[idField]
+			kmatch := contains(knownIDs, ID)
+			if ID == randID {
 				if a || (kmatch && k) || (!kmatch && !k) {
 					e.ID = fields[idField]
 					e.Navi = fields[navField]
@@ -278,7 +287,33 @@ func load(fname string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	populateUnknownIDs()
 	fmt.Println("data loaded")
+}
+
+func populateUnknownIDs() {
+	dfile, err := os.Open(fname_d)
+	if err != nil {
+		log.Fatal(err)
+	}
+	scanner := bufio.NewScanner(dfile)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if len(line) == 0 {
+			continue
+		}
+		fields := strings.Split(line, "\t")
+		ID := fields[idField]
+		if contains(knownIDs, ID) {
+			continue
+		} else {
+			unknownIDs = append(unknownIDs, ID)
+		}
+	}
+	err = dfile.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func rev() {
