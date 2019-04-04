@@ -4,8 +4,10 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math"
 	"math/rand"
 	"os"
+	"os/exec"
 	"os/user"
 	"path/filepath"
 	"strconv"
@@ -244,7 +246,32 @@ func source(s []string) {
 
 func progress() {
 	k := len(knownIDs)
-	p := 100 * (float64(k) / float64(numwords))
+	r := (float64(k) / float64(numwords))
+	p := 100 * r
+	cmd := exec.Command("stty", "size")
+	cmd.Stdin = os.Stdin
+	out, err := cmd.Output()
+	if err != nil {
+		log.Fatal(err)
+	}
+	s := string(out)
+	s = s[:len(s)-1]
+	ss := strings.Split(s, " ")
+	ws := ss[1]
+	width, err := strconv.ParseInt(ws, 10, 64)
+	if err != nil {
+		log.Fatal(err)
+	}
+	width -= 2
+	pchars := int(math.Round(float64(width) * r))
+	fmt.Print("[")
+	for i := 0; i < pchars; i++ {
+		fmt.Print("#")
+	}
+	for j := 0; j < int(width)-pchars; j++ {
+		fmt.Print("-")
+	}
+	fmt.Println("]")
 	fmt.Printf("%.2f%% (%d / %d)\n", p, k, numwords)
 }
 
@@ -395,7 +422,7 @@ func completer(d prompt.Document) []prompt.Suggest {
 }
 
 func main() {
-	head := "Ftia v2.2.0-dev by Tirea Aean"
+	head := "Ftia v2.2.1-dev by Tirea Aean"
 	fmt.Println(head)
 	linecount()
 	rand.Seed(time.Now().UTC().UnixNano())
