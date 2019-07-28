@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"math"
+	//"math"
 	"math/rand"
 	"net/http"
 	"os"
-	"os/exec"
+	//"os/exec"
 	"os/user"
 	"path/filepath"
 	"strconv"
@@ -278,30 +278,30 @@ func progress() {
 	k := len(knownIDs)
 	r := (float64(k) / float64(numwords))
 	p := 100 * r
-	cmd := exec.Command("stty", "size")
-	cmd.Stdin = os.Stdin
-	out, err := cmd.Output()
-	if err != nil {
-		log.Fatal(err)
-	}
-	s := string(out)
-	s = s[:len(s)-1]
-	ss := strings.Split(s, " ")
-	ws := ss[1]
-	width, err := strconv.ParseInt(ws, 10, 64)
-	if err != nil {
-		log.Fatal(err)
-	}
-	width -= 2
-	pchars := int(math.Round(float64(width) * r))
-	fmt.Print("[")
-	for i := 0; i < pchars; i++ {
-		fmt.Print("#")
-	}
-	for j := 0; j < int(width)-pchars; j++ {
-		fmt.Print("-")
-	}
-	fmt.Println("]")
+	// cmd := exec.Command("stty", "size")
+	// cmd.Stdin = os.Stdin
+	// out, err := cmd.Output()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// s := string(out)
+	// s = s[:len(s)-1]
+	// ss := strings.Split(s, " ")
+	// ws := ss[1]
+	// width, err := strconv.ParseInt(ws, 10, 64)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// width -= 2
+	// pchars := int(math.Round(float64(width) * r))
+	// fmt.Print("[")
+	// for i := 0; i < pchars; i++ {
+	// 	fmt.Print("#")
+	// }
+	// for j := 0; j < int(width)-pchars; j++ {
+	// 	fmt.Print("-")
+	// }
+	// fmt.Println("]")
 	fmt.Printf("%.2f%% (%d / %d)\n", p, k, numwords)
 }
 
