@@ -35,7 +35,7 @@ cd go\src\
 go get github.com/c-bata/go-prompt
 git clone https://github.com/tirea/ftia
 cd ftia
-go build -o $HOME\ftia.exe .\ftia.go
+go build -o $HOME\ftia.exe .\ftia-windows.go
 copy -Recurse .\.ftia $HOME\
 ```
 
