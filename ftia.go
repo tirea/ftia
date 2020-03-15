@@ -73,7 +73,7 @@ func linecount() {
 
 func DownloadDict() error {
 	var (
-		url      = "https://tirea.learnnavi.org/dictionarydata/dictionary_eng.txt"
+		url = "https://tirea.learnnavi.org/dictionarydata/dictionary_eng.txt"
 	)
 	out, err := os.Create(fname_d)
 	if err != nil {
@@ -95,7 +95,7 @@ func DownloadDict() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(url+"\nsaved to\n"+fname_d+"\n")
+	fmt.Println(url + "\nsaved to\n" + fname_d + "\n")
 	return nil
 }
 
@@ -398,7 +398,7 @@ func executor(cmd string) {
 			progress()
 		} else if contains([]string{"/switch", "/change", "/reverse", "/r", "/latem"}, s[0]) {
 			rev()
-		} else if contains([]string{"/update", "/u", "/tsan'ul"}, s[0]){
+		} else if contains([]string{"/update", "/u", "/tsan'ul"}, s[0]) {
 			err := DownloadDict()
 			if err != nil {
 				log.Fatal(err)
