@@ -4,7 +4,7 @@ format: ftia.go
 	gofmt -w ftia.go
 
 compile: ftia.go
-	go build -o ftia ftia.go
+	go build -o ftia ./...
 
 install: all
 	sudo cp ftia /usr/local/bin/

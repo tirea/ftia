@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"os/user"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -21,7 +22,7 @@ import (
 
 const (
 	// tODO: make language configurable
-	language string = "eng"
+	language string = "en"
 	// field indices of the data file
 	idField  int = 0
 	navField int = 1
@@ -43,21 +44,21 @@ type entry struct {
 }
 
 var (
-	numwords   int
-	knownIDs   []string
-	unknownIDs []string
-	selected   map[int]entry
-	reverse    bool = false
-	usr, _          = user.Current()
-	homeDir, _      = filepath.Abs(usr.HomeDir)
-	dataDir         = filepath.Join(homeDir, ".ftia")
-	fname_d         = filepath.Join(dataDir, "dictionary_"+language+".txt")
-	fname_k         = filepath.Join(dataDir, "known.txt")
-	fname_kr        = filepath.Join(dataDir, "known_rev.txt")
+	numwords             int
+	knownIDs             []string
+	unknownIDs           []string
+	selected             map[int]entry
+	reverse              = false
+	usr, _               = user.Current()
+	homeDir, _           = filepath.Abs(usr.HomeDir)
+	dataDir              = filepath.Join(homeDir, ".ftia")
+	dictFileName         = filepath.Join(dataDir, "dictionary_"+language+".txt")
+	knownFileName        = filepath.Join(dataDir, "known.txt")
+	knownReverseFileName = filepath.Join(dataDir, "known_rev.txt")
 )
 
 func linecount() {
-	dfile, err := os.Open(fname_d)
+	dfile, err := os.Open(dictFileName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -71,11 +72,12 @@ func linecount() {
 	}
 }
 
+// DownloadDict downloads and a new copy of the dictionary file to ~/.ftia/
 func DownloadDict() error {
 	var (
-		url = "https://tirea.learnnavi.org/dictionarydata/dictionary_eng.txt"
+		url = "https://tirea.learnnavi.org/dictionarydata/" + dictFileName
 	)
-	out, err := os.Create(fname_d)
+	out, err := os.Create(dictFileName)
 	if err != nil {
 		return err
 	}
@@ -95,7 +97,7 @@ func DownloadDict() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(url + "\nsaved to\n" + fname_d + "\n")
+	fmt.Println(url + "\nsaved to\n" + dictFileName + "\n")
 	return nil
 }
 
@@ -121,10 +123,9 @@ func getRandID(k bool) string {
 	if k {
 		rn := rand.Intn(len(knownIDs) - 1)
 		return knownIDs[rn]
-	} else {
-		rn := rand.Intn(len(unknownIDs) - 1)
-		return unknownIDs[rn]
 	}
+	rn := rand.Intn(len(unknownIDs) - 1)
+	return unknownIDs[rn]
 }
 
 func sel(n string, k bool, a bool) {
@@ -139,7 +140,7 @@ func sel(n string, k bool, a bool) {
 	for len(selected) < int(in) {
 		e := new(entry)
 		randID := getRandID(k)
-		dfile, err := os.Open(fname_d)
+		dfile, err := os.Open(dictFileName)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -278,30 +279,32 @@ func progress() {
 	k := len(knownIDs)
 	r := (float64(k) / float64(numwords))
 	p := 100 * r
-	cmd := exec.Command("stty", "size")
-	cmd.Stdin = os.Stdin
-	out, err := cmd.Output()
-	if err != nil {
-		log.Fatal(err)
+	if runtime.GOOS != "windows" {
+		cmd := exec.Command("stty", "size")
+		cmd.Stdin = os.Stdin
+		out, err := cmd.Output()
+		if err != nil {
+			log.Fatal(err)
+		}
+		s := string(out)
+		s = s[:len(s)-1]
+		ss := strings.Split(s, " ")
+		ws := ss[1]
+		width, err := strconv.ParseInt(ws, 10, 64)
+		if err != nil {
+			log.Fatal(err)
+		}
+		width -= 2
+		pchars := int(math.Round(float64(width) * r))
+		fmt.Print("[")
+		for i := 0; i < pchars; i++ {
+			fmt.Print("#")
+		}
+		for j := 0; j < int(width)-pchars; j++ {
+			fmt.Print("-")
+		}
+		fmt.Println("]")
 	}
-	s := string(out)
-	s = s[:len(s)-1]
-	ss := strings.Split(s, " ")
-	ws := ss[1]
-	width, err := strconv.ParseInt(ws, 10, 64)
-	if err != nil {
-		log.Fatal(err)
-	}
-	width -= 2
-	pchars := int(math.Round(float64(width) * r))
-	fmt.Print("[")
-	for i := 0; i < pchars; i++ {
-		fmt.Print("#")
-	}
-	for j := 0; j < int(width)-pchars; j++ {
-		fmt.Print("-")
-	}
-	fmt.Println("]")
 	fmt.Printf("%.2f%% (%d / %d)\n", p, k, numwords)
 }
 
@@ -349,7 +352,7 @@ func load(fname string) {
 }
 
 func populateUnknownIDs() {
-	dfile, err := os.Open(fname_d)
+	dfile, err := os.Open(dictFileName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -375,11 +378,11 @@ func populateUnknownIDs() {
 
 func rev() {
 	if reverse {
-		save(fname_kr)
-		load(fname_k)
+		save(knownReverseFileName)
+		load(knownFileName)
 	} else {
-		save(fname_k)
-		load(fname_kr)
+		save(knownFileName)
+		load(knownReverseFileName)
 	}
 	reverse = !reverse
 }
@@ -389,9 +392,9 @@ func executor(cmd string) {
 	if len(s) > 0 {
 		if contains([]string{"/q", "/quit", "/exit", "/kä", "/hum"}, s[0]) {
 			if reverse {
-				save(fname_kr)
+				save(knownReverseFileName)
 			} else {
-				save(fname_k)
+				save(knownFileName)
 			}
 			os.Exit(0)
 		} else if contains([]string{"/progress", "/p", "/holpxaype", "/polpxay"}, s[0]) {
@@ -463,7 +466,7 @@ func main() {
 	fmt.Println(head)
 	linecount()
 	rand.Seed(time.Now().UTC().UnixNano())
-	load(fname_k)
+	load(knownFileName)
 	fmt.Println()
 	p := prompt.New(executor, completer,
 		prompt.OptionTitle("Ftia"),
